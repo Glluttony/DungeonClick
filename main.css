@@ -93,7 +93,7 @@
     position: absolute;
 }
 
-#enememyPortrait {
+#enemyPortrait {
     background-image: url(resources/images/tortoise.png);
     background-size: 500px 400px;
     height: 400px;
@@ -125,4 +125,9 @@
     margin-top: -400;
     width: 500px;
     height: 400px;
+}
+
+#enemyHpBar {
+    width: 100%;
+    margin-top: 2;
 }
