@@ -40,31 +40,95 @@ function Enemy(enemyName, enemyHp, enemyLevel, enemyImage) {
 }
 
 
+function Character(friendlyName, friendlyDamage, friendlyImage) {
+    'use strict';
+    
+    var name, baseDamage, image;
+    
+    this.name = friendlyName;
+    this.baseDamage = friendlyDamage;
+    this.image = friendlyImage;
+    
+    this.getDamage = function () {
+        return this.baseDamage;
+    };
+    
+}
+
+function PartyMember(memberCharacter, memberHtmlObject) {
+    'use strict';
+    
+    var character, htmlObject, isActive;
+    
+    this.character = memberCharacter;
+    this.htmlObject = memberHtmlObject;
+    this.isActive = false;
+    
+    this.initiate = function () {
+        this.htmlObject.style.backgroundImage = this.character.image;
+    };
+    
+    this.activate = function () {
+        this.isActive = true;
+        this.htmlObject.style.opacity = 1;
+    };
+    
+    this.deactivate = function () {
+        this.isActive = false;
+        this.htmlObject.style.opacity = 0.8;
+    };
+}
+
+
 Game.Launch = function () {
     'use strict';
         
     var characterClickthing,
         counterPane,
-        friendlyCharacters = [],
         currentChar,
         totalClicks,
         currentEnemy,
+        currentParty,
         enemeyPortrait,
         enemyHpBar,
-        enemyHpBarWidth;
+        enemyHpBarWidth,
+        characterLeft,
+        characterRight,
+        characterTop,
+        characterBottom;
     
     Game.totalClicks = 0;
     Game.enemies = [];
-
+    Game.friendlyCharacters = [];
+    Game.partyMembers = [];
+    Game.maxPartyMembers = 4;
+    
     this.enemies.push(new Enemy("Tortoise", 50, 0, "url(./resources/images/tortoise.png)"));
     this.enemies.push(new Enemy("Snake", 50,  0, "url(./resources/images/snake.png)"));
     
+    this.friendlyCharacters.push(new Character("wizard", 5, "url(./resources/images/wizard-1.png)"));
+    this.friendlyCharacters.push(new Character("warrior", 8, "url(./resources/images/warrior-1.png)"));
+         
     Game.updateCounterPane = function () {
         Game.counterPane.innerHTML = "Clicks: " + Game.totalClicks;
     };
 
     this.updateFrames = function () {
         this.updateEnemyHpBar();
+        this.updatePartyMembers();
+    };
+    
+    this.updatePartyMembers = function () {
+        if (this.partyMembers.length > 1) {
+            this.partyMembers[this.currentParty].deactivate();
+            if (this.currentParty >= this.partyMembers.length - 1) {
+                this.currentParty = 0;
+                this.partyMembers[this.currentParty].activate();
+            } else {
+                this.currentParty = this.currentParty + 1;
+                this.partyMembers[this.currentParty].activate();
+            }
+        }
     };
     
     this.updateEnemyHpBar = function () {
@@ -77,7 +141,7 @@ Game.Launch = function () {
         Game.totalClicks = Game.totalClicks + 1;
         Game.updateCounterPane();
         this.updateFrames();
-        this.currentEnemy.getHit(1);
+        this.currentEnemy.getHit(this.partyMembers[this.currentParty].character.getDamage());
     };
     
     Game.setNextEnemy = function () {
@@ -104,6 +168,16 @@ Game.Launch = function () {
         }
     };
     
+    Game.getFriendly = function (friendlyName) {
+        var friendly, i;
+        for (i  = 0; i < this.friendlyCharacters.length; i = i + 1) {
+            friendly = this.friendlyCharacters[i];
+            if (friendly.name === friendlyName) {
+                return friendly;
+            }
+        }
+    };
+
     Game.showOnCounterPane = function (thing) {
         this.counterPane.innerHTML += "<br/>" + thing;
     };
@@ -113,6 +187,27 @@ Game.Launch = function () {
         
         this.counterPane = document.getElementById("counterPane");
         this.characterClickThing = document.getElementById("characters");
+        
+        //Character stuff
+        this.characterTop = document.getElementById("charactertop");
+        this.characterBottom = document.getElementById("characterbottom");
+        this.characterLeft = document.getElementById("characterleft");
+        this.characterRight = document.getElementById("characterright");
+        
+        var firstMember, secondMember;
+        firstMember = new PartyMember(clone(this.getFriendly("wizard")), this.characterRight);
+        this.partyMembers.push(firstMember);
+        
+        firstMember.initiate();
+        firstMember.activate();
+        this.currentParty = 0;
+                
+        secondMember = new PartyMember(clone(this.getFriendly("warrior")), this.characterLeft);
+        this.partyMembers.push(secondMember);
+        
+        secondMember.initiate();
+        
+        //Enemey stuff
         this.enemeyPortrait = document.getElementById("enemyPortrait");
         this.enemyHpBar = document.getElementById("enemyHpBar");
         this.enemyHpBarWidth = this.enemyHpBar.clientWidth;
