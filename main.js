@@ -56,10 +56,6 @@ Game.Launch = function () {
     Game.totalClicks = 0;
     Game.enemies = [];
 
-    //this.enemies.push({name: 'Tortoise', hp: 50, minLevel: 0, image: "url(./resources/images/tortoise.png)"});
-    //this.enemies.push({name: "Snake", hp: 50, minLevel: 0, image: "url(./resources/images/snake.png)"});
-    
-    
     this.enemies.push(new Enemy("Tortoise", 50, 0, "url(./resources/images/tortoise.png)"));
     this.enemies.push(new Enemy("Snake", 50,  0, "url(./resources/images/snake.png)"));
     
@@ -131,9 +127,7 @@ Game.Launch = function () {
 function onLoad() {
     'use strict';
     Game.Launch();
-    
-    //Game.characterClickThing = document.getElementById("characters");
-    
+
     Game.setupCleanGame();
     
 }
