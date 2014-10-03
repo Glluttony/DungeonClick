@@ -120,6 +120,8 @@ Game.Launch = function () {
     Game.partyMembers = [];
     Game.maxPartyMembers = 4;
     Game.enemyHpModifier = 0;
+    Game.automaticAttackSpeed = 0;
+    Game.attacked = false;
     
     //Enemy -> Name, MaxHP, MinLevel, Image
     this.enemies.push(new Enemy("Tortoise", 40, 0, 1, "url(./resources/images/tortoise.png)"));
@@ -140,15 +142,18 @@ Game.Launch = function () {
     };
     
     this.updatePartyMembers = function () {
-        if (this.partyMembers.length > 1) {
-            this.partyMembers[this.currentParty].deactivate();
-            if (this.currentParty >= this.partyMembers.length - 1) {
-                this.currentParty = 0;
-                this.partyMembers[this.currentParty].activate();
-            } else {
-                this.currentParty = this.currentParty + 1;
-                this.partyMembers[this.currentParty].activate();
+        if (Game.attacked) {
+            if (this.partyMembers.length > 1) {
+                this.partyMembers[this.currentParty].deactivate();
+                if (this.currentParty >= this.partyMembers.length - 1) {
+                    this.currentParty = 0;
+                    this.partyMembers[this.currentParty].activate();
+                } else {
+                    this.currentParty = this.currentParty + 1;
+                    this.partyMembers[this.currentParty].activate();
+                }
             }
+            Game.attacked = false;
         }
     };
     
@@ -162,8 +167,10 @@ Game.Launch = function () {
         //Enemy.damage(1, 'blunt');
         Game.totalClicks = Game.totalClicks + 1;
         Game.updateCounterPane();
-        this.updateFrames();
+      
         this.currentEnemy.getHit(this.partyMembers[this.currentParty].character.getDamage());
+        Game.attacked = true;
+        this.updateFrames();
     };
     
     Game.setNextEnemy = function () {
@@ -251,6 +258,15 @@ Game.Launch = function () {
         this.updateCounterPane();
     };
 
+    Game.mainLoop = function () {
+        
+        //this.currentEnemy.getHit(this.partyMembers[this.currentParty].character.getDamage());
+        //this.attacked = true;
+        
+        this.updateFrames();
+        setTimeout(function () {Game.mainLoop(); }, 1000);
+    };
+    
 };
 
 function onLoad() {
@@ -259,5 +275,6 @@ function onLoad() {
 
     Game.setupCleanGame();
     
+    Game.mainLoop();
 }
 
