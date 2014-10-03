@@ -1,8 +1,10 @@
 #topbar {
-    width: 100%;
-    height: 90px;
+    width: 1210px;
+    height: 120px;
     background-color: #5e5e5e;
-    margin-bottom: 20px;
+    margin-bottom: 5px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 #gamefield {
@@ -12,23 +14,29 @@
 }
 
 #bottombar {
-    height: 200px;
+    height: 150px;
     background-color: #5e5e5e;
     margin-top: 30px;
+    width: 1210px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 
 .hpBar {
-    width: 90%;
-    height: 15px;
+    width: 100%;
+    height: 100%;
     background-color: red;
+    text-align: center;
+
 }
 
 
 #counterPane {
-    width: 90px;
-    height: 90px;
+    width: 150px;
+    height: 100%;
     background-color: lightgrey;
+    float: left;
 }
 
 .charcterField {
@@ -133,17 +141,76 @@
 }
 
 #enemyHpBar {
-    width: 100%;
-    margin-top: 15;
+    position: relative;
+    top: 0;
+    left: 0;
+    margin-top: 15px;
 }
 
 body {
     margin: 0;
+    background-color: #c4c1bf;
 }
 
 #middlebar {
-    width: 100%;
+    width: 1210px;
     height: 410px;
     padding-top: 5px;
     background-color: #5e5e5e;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#buyingpane {
+    float: left;
+}
+
+#tavernbutton {
+    text-decoration: line-through;
+}
+
+.optionbutton {
+    height: 20px;
+    width: 100px;
+    border: 1 black solid;
+    margin: 2px;
+    padding-left: 5px;
+}
+
+#optionresultspane {
+    float: left;
+    height: 100%;
+    min-width: 300px;
+    width: 798px;
+    background-color: #8f8d8d;
+}
+
+#optionspane {
+    float: left;
+    width: 150px;
+    height: 100%;
+    background-color: #6d6d6d;
+}
+
+#enemyhpbararea {
+    width: 100%;
+    height: 20px;
+}
+
+#enemyhpbartext {
+    position: relative;
+    width: 100%;
+    margin-top: -20px;
+    text-align: center;
+    top: 0;
+    left: 0;
+    border: 1px black solid
+}
+
+#alchemistbutton {
+    text-decoration: line-through;
+}
+
+#storebutton {
+    text-decoration: line-through;
 }

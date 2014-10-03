@@ -17,15 +17,16 @@ function clone(obj) {
 
 
 
-function Enemy(enemyName, enemyHp, enemyLevel, enemyImage) {
+function Enemy(enemyName, enemyHp, enemyLevel, enemyReward, enemyImage) {
     'use strict';
-    var name, maxHp, currentHp, minLevel, image;
+    var name, maxHp, currentHp, minLevel, reward, image;
     
     this.name = enemyName;
     this.maxHp = enemyHp;
     this.currentHp = enemyHp;
     this.minLevel = enemyLevel;
     this.image = enemyImage;
+    this.reward = enemyReward;
     
     this.getHit = function (damage, damageType) {
         this.currentHp = this.currentHp - damage;
@@ -35,7 +36,15 @@ function Enemy(enemyName, enemyHp, enemyLevel, enemyImage) {
     };
         
     this.doDead = function () {
+        Game.totalKills = Game.totalKills + 1;
+        Game.grantRewards(this.reward);
+        Game.adjustEnemeyHpModifier();
         Game.setNextEnemy();
+    };
+    
+    this.adjustHP = function (modifier) {
+        this.currentHp = this.currentHp + modifier;
+        this.maxHp = this.currentHp;
     };
 }
 
@@ -87,30 +96,42 @@ Game.Launch = function () {
         counterPane,
         currentChar,
         totalClicks,
+        totalKills,
+        totalCurrency,
+        currentCurrency,
         currentEnemy,
         currentParty,
         enemeyPortrait,
         enemyHpBar,
+        enemyHpBarText,
         enemyHpBarWidth,
+        enemyHpModifier,
         characterLeft,
         characterRight,
         characterTop,
         characterBottom;
     
     Game.totalClicks = 0;
+    Game.totalKills = 0;
+    Game.totalCurrency = 0;
+    Game.currenCurrency = 0;
     Game.enemies = [];
     Game.friendlyCharacters = [];
     Game.partyMembers = [];
     Game.maxPartyMembers = 4;
+    Game.enemyHpModifier = 0;
     
-    this.enemies.push(new Enemy("Tortoise", 50, 0, "url(./resources/images/tortoise.png)"));
-    this.enemies.push(new Enemy("Snake", 50,  0, "url(./resources/images/snake.png)"));
+    //Enemy -> Name, MaxHP, MinLevel, Image
+    this.enemies.push(new Enemy("Tortoise", 40, 0, 1, "url(./resources/images/tortoise.png)"));
+    this.enemies.push(new Enemy("Snake", 60,  0, 2, "url(./resources/images/snake.png)"));
     
-    this.friendlyCharacters.push(new Character("wizard", 5, "url(./resources/images/wizard-1.png)"));
-    this.friendlyCharacters.push(new Character("warrior", 8, "url(./resources/images/warrior-1.png)"));
+    this.friendlyCharacters.push(new Character("wizard", 2, "url(./resources/images/wizard-1.png)"));
+    this.friendlyCharacters.push(new Character("warrior", 5, "url(./resources/images/warrior-1.png)"));
          
     Game.updateCounterPane = function () {
-        Game.counterPane.innerHTML = "Clicks: " + Game.totalClicks;
+        Game.counterPane.innerHTML = "Clicks: " + Game.totalClicks + " <br/> " +
+            "Kills: " + Game.totalKills + " <br/> " +
+            "Currency: " + Game.currenCurrency;
     };
 
     this.updateFrames = function () {
@@ -133,7 +154,8 @@ Game.Launch = function () {
     
     this.updateEnemyHpBar = function () {
         var actualWidth = (Game.currentEnemy.currentHp / Game.currentEnemy.maxHp) * this.enemyHpBarWidth;
-        this.enemyHpBar.style.width = actualWidth;
+        this.enemyHpBar.style.width = actualWidth + 1;
+        this.enemyHpBarText.innerHTML = this.currentEnemy.currentHp + " / " + this.currentEnemy.maxHp;
     };
     
     Game.onCharacterClick = function () {
@@ -150,7 +172,8 @@ Game.Launch = function () {
         //randEnemy = this.enemies[Math.floor(Math.random() * this.enemies.length)];
         
         this.currentEnemy = clone(this.enemies[rand]);
-       
+        this.currentEnemy.adjustHP(this.enemyHpModifier);
+        
         this.enemeyPortrait.style.backgroundImage = this.currentEnemy.image;
         this.updateFrames();
     };
@@ -178,6 +201,15 @@ Game.Launch = function () {
         }
     };
 
+    Game.adjustEnemeyHpModifier = function () {
+        this.enemyHpModifier = this.enemyHpModifier + 1;
+    };
+    
+    Game.grantRewards = function (rewardAmount) {
+        this.totalCurrency = this.totalCurrency + rewardAmount;
+        this.currenCurrency = this.currenCurrency + rewardAmount;
+    };
+    
     Game.showOnCounterPane = function (thing) {
         this.counterPane.innerHTML += "<br/>" + thing;
     };
@@ -210,7 +242,9 @@ Game.Launch = function () {
         //Enemey stuff
         this.enemeyPortrait = document.getElementById("enemyPortrait");
         this.enemyHpBar = document.getElementById("enemyHpBar");
-        this.enemyHpBarWidth = this.enemyHpBar.clientWidth;
+        this.enemyHpBarText = document.getElementById("enemyhpbartext");
+        this.enemyHpBarWidth = this.enemyHpBarText.clientWidth;
+        this.updateEnemyHpBar();
         
         this.characterClickThing.addEventListener("click",  function () {Game.onCharacterClick(); });
         
