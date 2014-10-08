@@ -52,16 +52,21 @@ function Enemy(enemyName, enemyHp, enemyLevel, enemyReward, enemyImage) {
 function Character(friendlyName, friendlyDamage, friendlyImage) {
     'use strict';
     
-    var name, baseDamage, image;
+    var name, baseDamage, image, recruited;
     
     this.name = friendlyName;
     this.baseDamage = friendlyDamage;
     this.image = friendlyImage;
+    this.recruited = false;
     
     this.getDamage = function () {
         return this.baseDamage;
     };
     
+    this.recruit = function () {
+        this.recruited = true;
+        Game.addRecruit(this);
+    };
 }
 
 function PartyMember(memberCharacter, memberHtmlObject) {
@@ -88,6 +93,36 @@ function PartyMember(memberCharacter, memberHtmlObject) {
     };
 }
 
+function BuyingToolTip() {
+    'use strict';
+    var ttElement;
+    //this.item = ttItem;
+    
+    this.init = function () {
+        this.ttElement = document.createElement('div');
+        this.ttElement.className = 'tooltip';
+    };
+
+    /**
+    * Title, price, description, flavour, htmn
+    */
+    this.draw = function (title, price, description, flavour, sourceElement) {
+        this.ttElement.innerHTML = "";
+        this.ttElement.innerHTML = "<p class='tttitle'>" + title + "</p>" +
+            "<p class='ttprice'>" + price + " currency </p>" +
+            "<p class='ttdescription'>" + description +  "</p>" +
+            "<p class='ttflavour'>" + flavour +  "</p>";
+        
+        //this.ttElement.position = 'absolute';
+        //this.ttElement.style.left = sourceElement.clientLeft + sourceElement.clientWidth;
+        this.ttElement.style.left = sourceElement.clientWidth + 1;
+        sourceElement.appendChild(this.ttElement);
+    };
+    
+    this.hide = function (sourceElement) {
+        sourceElement.removeChild(this.ttElement);
+    };
+}
 
 Game.Launch = function () {
     'use strict';
@@ -101,7 +136,7 @@ Game.Launch = function () {
         currentCurrency,
         currentEnemy,
         currentParty,
-        enemeyPortrait,
+        enemyPortrait,
         enemyHpBar,
         enemyHpBarText,
         enemyHpBarWidth,
@@ -109,7 +144,11 @@ Game.Launch = function () {
         characterLeft,
         characterRight,
         characterTop,
-        characterBottom;
+        characterBottom,
+        showcasePane,
+        storeButton,
+        tavernButton,
+        toolTip;
     
     Game.totalClicks = 0;
     Game.totalKills = 0;
@@ -117,11 +156,16 @@ Game.Launch = function () {
     Game.currenCurrency = 0;
     Game.enemies = [];
     Game.friendlyCharacters = [];
+    Game.recruitedPartyMembers = [];
     Game.partyMembers = [];
     Game.maxPartyMembers = 4;
     Game.enemyHpModifier = 0;
     Game.automaticAttackSpeed = 0;
     Game.attacked = false;
+    Game.toolTip = new BuyingToolTip();
+    Game.toolTip.init();
+    Game.lastTime = Date.now();
+    Game.timeTilNextAttack = 1000;
     
     //Enemy -> Name, MaxHP, MinLevel, Image
     this.enemies.push(new Enemy("Tortoise", 40, 0, 1, "url(./resources/images/tortoise.png)"));
@@ -129,7 +173,9 @@ Game.Launch = function () {
     
     this.friendlyCharacters.push(new Character("wizard", 2, "url(./resources/images/wizard-1.png)"));
     this.friendlyCharacters.push(new Character("warrior", 5, "url(./resources/images/warrior-1.png)"));
-         
+    this.friendlyCharacters.push(new Character("cleric", 1, "url(./resources/images/severus_snape.jpg)"));
+    this.friendlyCharacters.push(new Character("archer", 6, "url(./resources/images/hulk.jpg)"));
+    
     Game.updateCounterPane = function () {
         Game.counterPane.innerHTML = "Clicks: " + Game.totalClicks + " <br/> " +
             "Kills: " + Game.totalKills + " <br/> " +
@@ -139,10 +185,28 @@ Game.Launch = function () {
     this.updateFrames = function () {
         this.updateEnemyHpBar();
         this.updatePartyMembers();
+        this.updateCounterPane();
+    };
+    
+    this.addRecruit = function (recruit) {
+        Game.recruitedPartyMembers.push(this);
+        if (Game.recruitedPartyMembers.length <= Game.maxPartyMembers) {
+            var i, member;
+            for (i = 0; i < Game.mamaxPartyMembers; i = i + 1) {
+                if (i >= Game.recruitedPartyMembers.length) {
+                    break;
+                }
+                member = Game.recruitedPartyMembers[i];
+                if (i === 1) {
+                    Game.partyMembers[i] = member;
+                    Game.characterRight.style.backgroundImage = member.
+                }
+            }
+        }
     };
     
     this.updatePartyMembers = function () {
-        if (Game.attacked) {
+        if (this.attacked) {
             if (this.partyMembers.length > 1) {
                 this.partyMembers[this.currentParty].deactivate();
                 if (this.currentParty >= this.partyMembers.length - 1) {
@@ -153,23 +217,23 @@ Game.Launch = function () {
                     this.partyMembers[this.currentParty].activate();
                 }
             }
-            Game.attacked = false;
+            this.attacked = false;
         }
     };
     
     this.updateEnemyHpBar = function () {
-        var actualWidth = (Game.currentEnemy.currentHp / Game.currentEnemy.maxHp) * this.enemyHpBarWidth;
+        var actualWidth = (this.currentEnemy.currentHp / this.currentEnemy.maxHp) * this.enemyHpBarWidth;
         this.enemyHpBar.style.width = actualWidth + 1;
         this.enemyHpBarText.innerHTML = this.currentEnemy.currentHp + " / " + this.currentEnemy.maxHp;
     };
     
     Game.onCharacterClick = function () {
         //Enemy.damage(1, 'blunt');
-        Game.totalClicks = Game.totalClicks + 1;
-        Game.updateCounterPane();
+        this.totalClicks = Game.totalClicks + 1;
+        
       
         this.currentEnemy.getHit(this.partyMembers[this.currentParty].character.getDamage());
-        Game.attacked = true;
+        this.attacked = true;
         this.updateFrames();
     };
     
@@ -181,7 +245,7 @@ Game.Launch = function () {
         this.currentEnemy = clone(this.enemies[rand]);
         this.currentEnemy.adjustHP(this.enemyHpModifier);
         
-        this.enemeyPortrait.style.backgroundImage = this.currentEnemy.image;
+        this.enemyPortrait.style.backgroundImage = this.currentEnemy.image;
         this.updateFrames();
     };
     
@@ -221,6 +285,53 @@ Game.Launch = function () {
         this.counterPane.innerHTML += "<br/>" + thing;
     };
 
+    Game.populateShowcasePane = function (type) {
+        var i;
+        if (type === "store") {
+            this.showcasePane.innerHTML = "";
+            for (i = 0; i < itemList.length; i = i + 1) {
+                (function () {
+                    var item, button;
+                    item = itemList[i];
+                    if (item.unlocked && !item.bought) {
+                        //this.showcasePane.innerHTML = this.showcasePane.innerHTML +
+                        button = document.createElement('div');
+                        button.className = 'showcaseButton';
+                        button.style.backgroundColor = 'blue';
+                        button.style.backgroundImage = item.icon;
+
+                        button.addEventListener('mouseover', function () {Game.toolTip.draw(item.name, item.getPrice(), item.toolTip, item.flavourText, button); });
+                        button.addEventListener('mouseout', function () {Game.toolTip.hide(button); });
+                        button.addEventListener('click', function () {item.buy(Game); Game.populateShowcasePane('store'); });
+
+                        Game.showcasePane.appendChild(button);
+                    }
+                }());
+            }
+        } else if (type === "tavern") {
+            this.showcasePane.innerHTML = "";
+            for (i = 0; i < Game.friendlyCharacters.length; i = i + 1) {
+                (function () {
+                    var character, button;
+                    character = Game.friendlyCharacters[i];
+                    if (!character.recruited) {
+                        //this.showcasePane.innerHTML = this.showcasePane.innerHTML +
+                        button = document.createElement('div');
+                        button.className = 'showcaseButton';
+                        button.style.backgroundColor = 'blue';
+                        button.style.backgroundImage = character.image;
+
+                        button.addEventListener('mouseover', function () {Game.toolTip.draw(character.name, 10, character.name, character.name, button); });
+                        button.addEventListener('mouseout', function () {Game.toolTip.hide(button); });
+                        button.addEventListener('click', function () {character.recruit(); Game.populateShowcasePane('tavern'); });
+
+                        Game.showcasePane.appendChild(button);
+                    }
+                }());
+            }
+        }
+    };
+    
     Game.setupCleanGame = function () {
         this.currentEnemy = clone(this.getEnemy("Tortoise"));
         
@@ -233,25 +344,38 @@ Game.Launch = function () {
         this.characterLeft = document.getElementById("characterleft");
         this.characterRight = document.getElementById("characterright");
         
-        var firstMember, secondMember;
-        firstMember = new PartyMember(clone(this.getFriendly("wizard")), this.characterRight);
+        var firstMember, secondMember, character;
+        character = this.getFriendly("wizard");
+        character.recruited = true;
+        Game.recruitedPartyMembers.push(character);
+        firstMember = new PartyMember(character, this.characterRight);
         this.partyMembers.push(firstMember);
         
         firstMember.initiate();
         firstMember.activate();
         this.currentParty = 0;
-                
-        secondMember = new PartyMember(clone(this.getFriendly("warrior")), this.characterLeft);
+        
+        character = this.getFriendly("warrior");
+        character.recruited = true;
+        this.recruitedPartyMembers.push(character);
+        secondMember = new PartyMember(character, this.characterLeft);
         this.partyMembers.push(secondMember);
         
         secondMember.initiate();
         
-        //Enemey stuff
-        this.enemeyPortrait = document.getElementById("enemyPortrait");
+        //Enemy stuff
+        this.enemyPortrait = document.getElementById("enemyPortrait");
         this.enemyHpBar = document.getElementById("enemyHpBar");
         this.enemyHpBarText = document.getElementById("enemyhpbartext");
         this.enemyHpBarWidth = this.enemyHpBarText.clientWidth;
         this.updateEnemyHpBar();
+        
+        //Store stuff
+        this.showcasePane = document.getElementById("buyingresultspane");
+        this.storeButton = document.getElementById("storebutton");
+        this.storeButton.addEventListener("click", function () { Game.populateShowcasePane('store'); });
+        this.tavernButton = document.getElementById("tavernbutton");
+        this.tavernButton.addEventListener("click", function () { Game.populateShowcasePane('tavern'); });
         
         this.characterClickThing.addEventListener("click",  function () {Game.onCharacterClick(); });
         
@@ -259,12 +383,25 @@ Game.Launch = function () {
     };
 
     Game.mainLoop = function () {
+        var elapsedTime, currentAttackTime;
+        elapsedTime = Date.now() - this.lastTime;
         
-        //this.currentEnemy.getHit(this.partyMembers[this.currentParty].character.getDamage());
-        //this.attacked = true;
+        if (Game.automaticAttackSpeed !== 0) {
+            currentAttackTime = Game.timeTilNextAttack - elapsedTime;
+           
+            Game.timeTilNextAttack = currentAttackTime - elapsedTime;
+           
+            if (Game.timeTilNextAttack <= 0) {
+                Game.timeTilNextAttack = Game.timeTilNextAttack + Game.automaticAttackSpeed;
+                this.currentEnemy.getHit(this.partyMembers[this.currentParty].character.getDamage());
+                this.attacked = true;
+            }
+        }
         
+        this.lastTime = Date.now();
         this.updateFrames();
-        setTimeout(function () {Game.mainLoop(); }, 1000);
+        
+        setTimeout(function () {Game.mainLoop(); }, 500);
     };
     
 };

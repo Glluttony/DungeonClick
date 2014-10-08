@@ -37,6 +37,7 @@
     height: 100%;
     background-color: lightgrey;
     float: left;
+    padding-left: 5px;
 }
 
 .charcterField {
@@ -175,9 +176,10 @@ body {
     border: 1 black solid;
     margin: 2px;
     padding-left: 5px;
+    background-color: white;
 }
 
-#optionresultspane {
+#buyingresultspane {
     float: left;
     height: 100%;
     min-width: 300px;
@@ -187,7 +189,7 @@ body {
 
 #optionspane {
     float: left;
-    width: 150px;
+    width: 145px;
     height: 100%;
     background-color: #6d6d6d;
 }
@@ -212,5 +214,43 @@ body {
 }
 
 #storebutton {
-    text-decoration: line-through;
+
+}
+
+.showcaseButton {
+    width: 37px;
+    height: 37px;
+    margin: 2px;
+    float: left;
+    background-color: red;
+    background-size: 40 40;
+}
+
+.tooltip {
+    width: 200px;
+    max-width: 200px;
+    position: relative;
+    height: auto;
+    padding: 2px;
+    border: 1px black solid;
+    background-color: #ae6969;
+}
+
+.tttitle {
+    font-weight: bold;
+    margin: 0;
+}
+
+.ttdescription {
+    margin: 0;
+}
+
+.ttflavour {
+    font-style: italic;
+    margin: 0;
+}
+
+.ttprice {
+    font-style: italic;
+    margin: 0;
 }
