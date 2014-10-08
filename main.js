@@ -199,7 +199,7 @@ Game.Launch = function () {
                 member = Game.recruitedPartyMembers[i];
                 if (i === 1) {
                     Game.partyMembers[i] = member;
-                    Game.characterRight.style.backgroundImage = member.
+                    Game.characterRight.style.backgroundImage = member.character.image;
                 }
             }
         }
